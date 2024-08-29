@@ -41,18 +41,23 @@ See: https://garnet-framework.dev/docs/how/context-broker#ngsi-ld-subscriptions
 
 Creating a basic subscription that will be triggered every time a carpark's slot availability is updated.
 
+Edit the test-sub.json file to provide the URL for the Garnet Private Subscription Endpoint. You can get this value from the CloudFormation stack's outputs.
+
 ```
+vi test-sub.json
+# Replace <YOUR-GARNET-PRIVATE-SUBSCRIPTION-ENDPOINT> with the correct value and save the file
+
+Create a subscription using Garnet API.
+
+``` 
 curl -v --location ${GarnetEndpoint}/ngsi-ld/v1/subscriptions \
 --header 'Content-Type: application/ld+json' \
 --data "@test-sub.json"
 ```
 
-Test subscription with external API that is protected with API key.
-```
-curl -v --location ${GarnetEndpoint}/ngsi-ld/v1/subscriptions \
---header 'Content-Type: application/ld+json' \
---data "@test-sub-ext-api.json"
-```
+Verify that a notification is delivered to the IoT Core's MQTT topics using AWS IoT Core console's MQTT test client. Subscribe to a wildcard topic `garnet/subscriptions/#` to view all notifications for Garnet subscriptions.
+
+Trigger the `hdb-carpark-availability-XXX` Lambda function to update the latest slot availability for the carparks. Verify that there is a new notification received in the MQTT test client that you set up above.
 
 ```
 # Get all subscriptions

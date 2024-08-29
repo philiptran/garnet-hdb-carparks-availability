@@ -11,7 +11,7 @@
     "watchedAttributes": ["availableSpotNumber"],
     "notification": {
         "endpoint": {
-            "uri": "<YOUR-GARNET-PRIVATE-SUBSCRIPTION-ENDPOINT",
+            "uri": "<YOUR-GARNET-PRIVATE-SUBSCRIPTION-ENDPOINT>",
             "accept": "application/json"
         }
    },

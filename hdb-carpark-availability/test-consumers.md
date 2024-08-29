@@ -46,6 +46,7 @@ Edit the test-sub.json file to provide the URL for the Garnet Private Subscripti
 ```
 vi test-sub.json
 # Replace <YOUR-GARNET-PRIVATE-SUBSCRIPTION-ENDPOINT> with the correct value and save the file
+```
 
 Create a subscription using Garnet API.
 

@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  hdb-carpark-receiver-api
+
+Globals:
+  Function:
+    Timeout: 10
+
+Parameters:
+  GarnetSQSEndpoint:
+    Description: Your Garnet platform's SQS URL endpoint
+    Type: String
+
+Resources:
+  HdbCarparkReceiverApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+      Auth:
+        ApiKeyRequired: true # set for all methods
+        UsagePlan:
+          CreateUsagePlan: PER_API
+          Description: Usage plan for hdb carpark receiver API
+
+  HdbCarparkReceiverFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambdaHandler
+      Runtime: nodejs18.x
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonSQSFullAccess
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          GARNET_IOT_SQS_URL: !Ref GarnetSQSEndpoint
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref HdbCarparkReceiverApi
+            Path: /carpark
+            Method: post
+            Auth:
+              ApiKeyRequired: true
+
+  GarnetSubscriptionEchoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: echo.lambdaHandler
+      Runtime: nodejs18.x
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref HdbCarparkReceiverApi
+            Path: /echo
+            Method: post
+            Auth:
+              ApiKeyRequired: true
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  HdbCarparkReceiverApi:
+    Description: "API Gateway endpoint URL for Prod stage for HDB Carpark Receiver function"
+    Value: !Sub "https://${HdbCarparkReceiverApi}.execute-api.${AWS::Region}.amazonaws.com/dev/carpark"
+

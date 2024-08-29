@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  hdb-carpark-availability
+
+Transform:
+- AWS::Serverless-2016-10-31
+
+Parameters:
+  GarnetSQSEndpoint:
+    Description: Your Garnet platform's SQS URL endpoint
+    Type: String
+
+Resources:
+  HDBCarparkAvailabilityFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/index.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 600
+      Description: A Lambda function to get the HDB carpark slot availability and ingest the data into Garnet platform
+      Policies:
+        # TODO reduce the permission for SQS and S3..
+        - AWSLambdaBasicExecutionRole
+        - AmazonSQSFullAccess
+        - AmazonS3FullAccess
+      Environment:
+        Variables:
+          GARNET_IOT_SQS_URL: !Ref GarnetSQSEndpoint
+          THING_PREFIX: Singapore-Parking
+          URL_API: https://api.data.gov.sg/v1/transport/carpark-availability
+
+  LambdaScheduler:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: 'rate(15 minutes)'
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt HDBCarparkAvailabilityFunction.Arn
+          Id: HDBCarparkAvailabilityFunctionTarget
+
+  HDBCarparkLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    DependsOn: LambdaScheduler
+    Properties:
+      FunctionName: !GetAtt HDBCarparkAvailabilityFunction.Arn
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt LambdaScheduler.Arn
+

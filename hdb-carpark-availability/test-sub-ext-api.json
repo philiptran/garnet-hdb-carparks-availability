@@ -1,0 +1,27 @@
+{
+    "id": "urn:ngsi-ld:Subscription:External:Singapore-Parking-Y9",
+    "description": "Notify me when this carpark slot availability is updated.",
+    "type": "Subscription",
+    "entities": [
+        {
+            "type": "ParkingGroup", 
+            "id": "urn:ngsi-ld:ParkingGroup:Singapore-Parking-Y9"
+        }
+    ],
+    "watchedAttributes": ["availableSpotNumber"],
+    "notification": {
+        "endpoint": {
+            "uri": "<YOUR-OWN-API-URL-TO-RECEIVE-THE-PAYLOAD>",
+            "accept": "application/json",
+            "receiverInfo": [
+                { 
+                  "key": "x-api-key",
+                  "value": "<YOUR-API-KEY>"
+                }
+            ]
+        }
+   },
+  "@context": [
+    "https://raw.githubusercontent.com/awslabs/garnet-framework/main/context.jsonld"
+  ]
+}

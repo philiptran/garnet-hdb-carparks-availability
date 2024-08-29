@@ -1,0 +1,21 @@
+{
+    "id": "urn:ngsi-ld:Subscription:Singapore-Parking-SB46",
+    "description": "Notify me when this carpark slot availability is updated.",
+    "type": "Subscription",
+    "entities": [
+        {
+            "type": "ParkingGroup", 
+            "id": "urn:ngsi-ld:ParkingGroup:Singapore-Parking-SB46"
+        }
+    ],
+    "watchedAttributes": ["availableSpotNumber"],
+    "notification": {
+        "endpoint": {
+            "uri": "<YOUR-GARNET-PRIVATE-SUBSCRIPTION-ENDPOINT",
+            "accept": "application/json"
+        }
+   },
+  "@context": [
+    "https://raw.githubusercontent.com/awslabs/garnet-framework/main/context.jsonld"
+  ]
+}

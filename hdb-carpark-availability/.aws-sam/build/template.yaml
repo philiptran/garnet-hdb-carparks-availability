@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: hdb-carpark-availability
+Transform:
+- AWS::Serverless-2016-10-31
+Resources:
+  HDBCarparkAvailabilityFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/index.handler
+      Runtime: nodejs16.x
+      Architectures:
+      - x86_64
+      MemorySize: 128
+      Timeout: 600
+      Description: A Lambda function that returns a static string.
+      Policies:
+      - AWSLambdaBasicExecutionRole
+      - AmazonSQSFullAccess
+      - AmazonS3FullAccess
+      Environment:
+        Variables:
+          GARNET_IOT_SQS_URL: <YOUR-GARNET-SQS-URL-ENDPOINT>
+          THING_PREFIX: Singapore-Parking
+          URL_API: https://api.data.gov.sg/v1/transport/carpark-availability
+      CodeUri: HDBCarparkAvailabilityFunction
+    Metadata:
+      SamResourceId: HDBCarparkAvailabilityFunction
+  LambdaScheduler:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: rate(15 minutes)
+      State: ENABLED
+      Targets:
+      - Arn:
+          Fn::GetAtt:
+          - HDBCarparkAvailabilityFunction
+          - Arn
+        Id: HDBCarparkAvailabilityFunctionTarget
+  HDBCarparkLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    DependsOn: LambdaScheduler
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+        - HDBCarparkAvailabilityFunction
+        - Arn
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn:
+        Fn::GetAtt:
+        - LambdaScheduler
+        - Arn

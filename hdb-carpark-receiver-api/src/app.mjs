@@ -3,7 +3,11 @@ const THING_PREFIX = "Singapore-Parking"
 import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs"
 const sqs = new SQSClient({})
 const type = "ParkingGroup"
-import carparks from './carparks.json' assert { type: 'json' }
+//import carparks from './carparks.json' assert { type: 'json' }
+
+import {readFileSync} from "fs";
+var carparks = JSON.parse(readFileSync('./carparks.json'));
+
 
 export const lambdaHandler = async (event, context) => {
     let payload = JSON.parse(event.body);

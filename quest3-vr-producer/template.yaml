@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  quest3-vr-producer
+
+Globals:
+  Function:
+    Timeout: 10
+
+Parameters:
+  GarnetSQSEndpoint:
+    Description: Your Garnet platform's SQS URL endpoint
+    Type: String
+
+Resources:
+  GarnetProducerVREvents:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambdaHandler
+      Runtime: nodejs18.x
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonSQSFullAccess
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          GARNET_IOT_SQS_URL: !Ref GarnetSQSEndpoint

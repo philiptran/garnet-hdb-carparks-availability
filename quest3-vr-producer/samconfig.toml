@@ -1,0 +1,10 @@
+version = 0.1
+[default.deploy.parameters]
+stack_name = "quest3-vr-producer"
+resolve_s3 = true
+s3_prefix = "quest3-vr-producer"
+region = "ap-southeast-1"
+capabilities = "CAPABILITY_IAM"
+disable_rollback = true
+parameter_overrides = "GarnetSQSEndpoint=\"https://sqs.ap-southeast-1.amazonaws.com/084448423204/garnet-iot-queue-ap-southeast-1\""
+image_repositories = []

@@ -1,6 +1,6 @@
-# hdb-carpark-receiver-api
+# quest3-vr-producer
 
-This project contains sample code for HDB carpark receiver API to update the carpark slot availability in Garnet platform via API.
+This project contains sample code for a Quest3 VR headset data producer that sends VR headset telemetry and event data to the Garnet platform via SQS messaging.
 
 ## Deploy the sample application
 
@@ -24,30 +24,50 @@ The first command will build the source of your application. The second command 
 * **Allow SAM CLI IAM role creation**: Many AWS SAM templates, including this example, create AWS IAM roles required for the AWS Lambda function(s) included to access AWS services. By default, these are scoped down to minimum required permissions. To deploy an AWS CloudFormation stack which creates or modifies IAM roles, the `CAPABILITY_IAM` value for `capabilities` must be provided. If permission isn't provided through this prompt, to deploy this example you must explicitly pass `--capabilities CAPABILITY_IAM` to the `sam deploy` command.
 * **Save arguments to samconfig.toml**: If set to yes, your choices will be saved to a configuration file inside the project, so that in the future you can just re-run `sam deploy` without parameters to deploy changes to your application.
 
-You can find your API Gateway Endpoint URL in the output values displayed after deployment.
+The deployment will create a Lambda function that processes VR headset data and forwards it to your Garnet platform's SQS endpoint.
+
+## Project Architecture
+
+This serverless application consists of:
+
+- **Lambda Function**: `GarnetProducerVREvents` - Processes VR headset telemetry data and formats it for the Garnet platform
+- **SQS Integration**: Sends formatted NGSI-LD entities to the configured Garnet SQS endpoint
+- **VR Data Processing**: Handles Quest3 headset position, rotation, and other telemetry data
+
+## Configuration
+
+The application requires the following parameter during deployment:
+
+- `GarnetSQSEndpoint`: The SQS URL endpoint for your Garnet platform instance
+
+The Lambda function creates NGSI-LD compliant entities with the following structure:
+- Entity ID: `urn:ngsi-ld:VR-Headsets:VR-Headset-{DEVICE_ID}`
+- Entity Type: `VR-Headsets`
+- Scope: `/Singapore/VR-Headsets/VR-Headset-{DEVICE_ID}`
 
 ## Quick Tests
 
-Navigate to the API Gateway console and locate the API key for the HDB carpark receiver API, `API Gateway > APIs > API keys`. Also take note of the URL for the API endpoint to configure the environment variables below.
+After deployment, you can test the Lambda function by invoking it with sample VR headset data:
 
+```bash
+# Test the Lambda function with sample VR data
+aws lambda invoke \
+  --function-name quest3-vr-producer-GarnetProducerVREvents \
+  --payload '{"headsetId": "Quest3-02", "position": {"x": 1.5, "y": 2.0, "z": 0.5}, "rotation": {"x": 0, "y": 45, "z": 0}, "timestamp": "2024-01-01T12:00:00Z"}' \
+  response.json
+
+# View the response
+cat response.json
 ```
-export APIKey=<YOUR_API_KEY>
-export API_URL=<YOUR_API_ENDPOINT>
-curl -H "x-api-key: ${APIKey}" --location ${API_URL} --data-raw '{"carparkNo": "SB46", "availableSlotNumber": "20"}'
 
-# test echo API
-export ECHO_API=<YOUR-TEST-ECHO-API>
-curl -H "x-api-key: ${APIKey}" --location ${ECHO_API} --data-raw '{"carparkNo": "SB46", "availableSlotNumber": "20"}'
-```
-
-Verify that a notification is delivered to the IoT Core's MQTT topics using AWS IoT Core console's MQTT test client. Subscribe to a wildcard topic `garnet/subscriptions/#` to view all notifications for Garnet subscriptions.
+The function will process the VR headset data and send it to the configured Garnet SQS endpoint. You can monitor the SQS queue in the AWS console to verify messages are being sent successfully.
 
 ## Cleanup
 
 To delete the sample application that you created, use the AWS CLI. Assuming you used your project name for the stack name, you can run the following:
 
 ```bash
-sam delete --stack-name hdb-carpark-receiver-api
+sam delete --stack-name quest3-vr-producer
 ```
 
 ## Resources
